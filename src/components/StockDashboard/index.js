@@ -72,7 +72,12 @@ const StockDashboard = () => {
   useEffect(() => {
     const loadExcelData = async () => {
       try {
-        const response = await fetch('C:\Users\ChrisHall\Tectra Technologies Ltd\Tectra Technologies Ltd - Operations\Sales Operations Master Folder\Weekly Sales Operations Reporting\Full.xlsx');
+        const response = await fetch('https://tectratech.sharepoint.com/personal/your_email/_layouts/15/download.aspx?share=ES21da1KeS5Fg7tktPsWE6MB3JD6OrrDXWu80xXMU8AT8g', {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
         const fileContent = await response.arrayBuffer();
         const workbook = XLSX.read(new Uint8Array(fileContent), { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
