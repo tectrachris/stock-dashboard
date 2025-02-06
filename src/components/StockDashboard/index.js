@@ -97,8 +97,13 @@ const StockDashboard = () => {
   useEffect(() => {
     const loadExcelData = async () => {
       try {
-        const response = await window.fs.readFile('Full.xlsx');
-        const workbook = XLSX.read(new Uint8Array(response), { type: 'array' });
+        const response = await fetch('/Full.xlsx');
+        if (!response.ok) {
+          console.error('Fetch failed:', response.status, response.statusText);
+          return;
+        }
+        const fileContent = await response.arrayBuffer();
+        const workbook = XLSX.read(fileContent, { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(sheet);
         const currentDate = new Date();
