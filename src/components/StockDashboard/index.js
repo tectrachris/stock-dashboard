@@ -433,6 +433,7 @@ const StockDashboard = () => {
                       <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
                       <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Action}</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {statusHistory[item['Stock Id']] && 
                          formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}
