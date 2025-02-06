@@ -17,6 +17,9 @@ const StockDashboard = () => {
   const [otherActions, setOtherActions] = useState({});
   const [statusHistory, setStatusHistory] = useState({});
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [selectedRows, setSelectedRows] = useState(new Set());
+  const [bulkAction, setBulkAction] = useState('Select action...');
+  const [bulkOtherAction, setBulkOtherAction] = useState('');
 
   // Define main buyers
   const mainBuyers = {
@@ -218,6 +221,48 @@ const StockDashboard = () => {
     setOtherActions(newOtherActions);
     localStorage.setItem('stockOtherActions', JSON.stringify(newOtherActions));
   };
+  
+  const toggleRowSelection = (stockId) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(stockId)) {
+      newSelected.delete(stockId);
+    } else {
+      newSelected.add(stockId);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const toggleAllRows = () => {
+    if (selectedRows.size === filteredData.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(filteredData.map(item => item['Stock Id'])));
+    }
+  };
+
+  const applyBulkAction = () => {
+    if (bulkAction === 'Select action...') return;
+
+    const newStockActions = { ...stockActions };
+    const newOtherActions = { ...otherActions };
+
+    selectedRows.forEach(stockId => {
+      newStockActions[stockId] = bulkAction;
+      if (bulkAction === 'Other') {
+        newOtherActions[stockId] = bulkOtherAction;
+      } else {
+        delete newOtherActions[stockId];
+      }
+    });
+
+    setStockActions(newStockActions);
+    setOtherActions(newOtherActions);
+    localStorage.setItem('stockActions', JSON.stringify(newStockActions));
+    localStorage.setItem('stockOtherActions', JSON.stringify(newOtherActions));
+    setBulkAction('Select action...');
+    setBulkOtherAction('');
+    setSelectedRows(new Set());
+  };
 
   const filteredData = useMemo(() => filterAndSortData(stockData[activeStatus] || []), [stockData, selectedBuyer, activeStatus]);
 
@@ -297,6 +342,42 @@ const StockDashboard = () => {
               </div>
             ))}
           </div>
+          
+          {selectedRows.size > 0 && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium text-blue-700">
+                  {selectedRows.size} items selected
+                </span>
+                <div className="flex-1 flex items-center space-x-4">
+                  <select
+                    className="flex-1 border rounded-lg px-4 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={bulkAction}
+                    onChange={(e) => setBulkAction(e.target.value)}
+                  >
+                    {actionOptions.map(option => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                  {bulkAction === 'Other' && (
+                    <input
+                      type="text"
+                      className="flex-1 border rounded-lg px-4 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Specify other action..."
+                      value={bulkOtherAction}
+                      onChange={(e) => setBulkOtherAction(e.target.value)}
+                    />
+                  )}
+                  <button
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onClick={applyBulkAction}
+                  >
+                    Apply to Selected
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Data Table */}
           <div className="pb-16"> {/* Container with bottom padding */}
@@ -304,6 +385,14 @@ const StockDashboard = () => {
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
+                        checked={selectedRows.size === filteredData.length}
+                        onChange={toggleAllRows}
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
@@ -319,7 +408,25 @@ const StockDashboard = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredData.map((item) => (
-                    <tr key={item['Stock Id']} className="hover:bg-gray-50">
+                    {filteredData.map((item) => (
+                      <tr 
+                        key={item['Stock Id']} 
+                        className={`group transition-colors ${
+                          actionedItems[item['Stock Id']] 
+                            ? 'bg-gray-100 text-gray-500' 
+                            : selectedRows.has(item['Stock Id'])
+                            ? 'bg-blue-50'
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
+                          checked={selectedRows.has(item['Stock Id'])}
+                          onChange={() => toggleRowSelection(item['Stock Id'])}
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">{item['Stock Id']}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{item.Product}</td>
                       <td className="px-6 py-4 whitespace-nowrap">{item.Description}</td>
