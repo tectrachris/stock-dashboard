@@ -40,7 +40,6 @@ const StockDashboard = () => {
   };
 
   const filterAndSortData = (data) => {
-    // First filter by buyer
     let filtered = selectedBuyer === 'all' 
       ? data
       : selectedBuyer === 'Other'
@@ -53,7 +52,6 @@ const StockDashboard = () => {
             return buyer === mainBuyers[selectedBuyer];
           });
     
-    // Then sort by stock cost (highest to lowest)
     return filtered.sort((a, b) => {
       const costA = Number(a['Stock Cost']) || 0;
       const costB = Number(b['Stock Cost']) || 0;
@@ -61,31 +59,54 @@ const StockDashboard = () => {
     });
   };
 
+  // Load status history
   useEffect(() => {
-    // Load status history from localStorage
     const savedHistory = localStorage.getItem('statusHistory');
     if (savedHistory) {
       setStatusHistory(JSON.parse(savedHistory));
     }
   }, []);
 
+  // Scroll synchronization
+  useEffect(() => {
+    const tableContainer = document.querySelector('.table-container');
+    const floatingScroll = document.querySelector('.floating-scroll');
+
+    if (!tableContainer || !floatingScroll) return;
+
+    const handleTableScroll = () => {
+      floatingScroll.scrollLeft = tableContainer.scrollLeft;
+    };
+
+    const handleFloatingScroll = () => {
+      tableContainer.scrollLeft = floatingScroll.scrollLeft;
+    };
+
+    floatingScroll.addEventListener('scroll', handleFloatingScroll);
+    tableContainer.addEventListener('scroll', handleTableScroll);
+
+    return () => {
+      floatingScroll.removeEventListener('scroll', handleFloatingScroll);
+      tableContainer.removeEventListener('scroll', handleTableScroll);
+    };
+  }, []);
+
+  // Load Excel data
   useEffect(() => {
     const loadExcelData = async () => {
       try {
-        console.log('Fetching Excel file...');
         const response = await fetch('/Full.xlsx');
         if (!response.ok) {
           console.error('Fetch failed:', response.status, response.statusText);
           return;
         }
-        console.log('Fetch successful');
         const fileContent = await response.arrayBuffer();
         const workbook = XLSX.read(new Uint8Array(fileContent), { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(sheet);
         const currentDate = new Date();
 
-        // Load saved actions from localStorage only if they don't exist in state
+        // Load saved actions
         if (Object.keys(stockActions).length === 0) {
           const savedActions = localStorage.getItem('stockActions');
           if (savedActions) {
@@ -100,7 +121,7 @@ const StockDashboard = () => {
           }
         }
 
-        // Update status history with preservation of existing timestamps
+        // Update status history
         const newStatusHistory = { ...statusHistory };
         data.forEach(item => {
           const stockId = item['Stock Id'];
@@ -113,7 +134,6 @@ const StockDashboard = () => {
               history: []
             };
           } else if (newStatusHistory[stockId].status !== status) {
-            // Only update if status has changed
             newStatusHistory[stockId].history.push({
               status: newStatusHistory[stockId].status,
               duration: getDuration(new Date(newStatusHistory[stockId].startDate), currentDate)
@@ -127,20 +147,19 @@ const StockDashboard = () => {
         localStorage.setItem('statusHistory', JSON.stringify(newStatusHistory));
         setLastUpdate(currentDate.toISOString());
 
-        // Function to check if item should be excluded from Incorrect report
+        // Helper functions
         const shouldExcludeFromIncorrect = (item) => {
           const comments = (item.Comments || '').toUpperCase();
           const exclusionTerms = ['VOK', 'V.OK', 'VIS', 'VISUAL'];
           return exclusionTerms.some(term => comments.includes(term));
         };
 
-        // Function to identify returned stock
         const isReturnedStock = (item) => {
           const stockId = String(item['Stock Id'] || '');
           return stockId.endsWith('-1');
         };
 
-        // Categorize all data
+        // Categorize data
         const categorizedData = {
           'Incorrect': data.filter(item => 
             item.Status === 'Incorrect' && !shouldExcludeFromIncorrect(item)
@@ -151,7 +170,7 @@ const StockDashboard = () => {
           'Returned': data.filter(isReturnedStock)
         };
 
-        // Calculate counts for all categories
+        // Calculate counts
         const counts = {
           'Incorrect': categorizedData['Incorrect'].length,
           'Missing': categorizedData['Missing'].length,
@@ -171,7 +190,7 @@ const StockDashboard = () => {
 
     loadExcelData();
   }, [statusHistory]);
-
+  
   const handleActionChange = (stockId, action) => {
     const newStockActions = {
       ...stockActions,
@@ -190,7 +209,6 @@ const StockDashboard = () => {
     localStorage.setItem('stockOtherActions', JSON.stringify(newOtherActions));
   };
 
-  // Add activeStatus as a dependency to update buyer totals
   const filteredData = useMemo(() => filterAndSortData(stockData[activeStatus] || []), [stockData, selectedBuyer, activeStatus]);
 
   if (loading) {
@@ -271,10 +289,10 @@ const StockDashboard = () => {
           </div>
 
           {/* Data Table */}
-          <div className="h-[600px] overflow-y-auto">
-            <div className="sticky bottom-0 left-0 right-0 overflow-x-auto bg-white border-t shadow-lg">
+          <div className="pb-16"> {/* Added padding to prevent overlap with fixed scroll bar */}
+            <div className="overflow-x-auto table-container"> {/* Added table-container class */}
               <table className="min-w-full">
-                <thead className="bg-gray-50 sticky top-0 z-10">
+                <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
@@ -289,51 +307,59 @@ const StockDashboard = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                   </tr>
                 </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredData.map((item) => (
-                  <tr key={item['Stock Id']} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">{item['Stock Id']}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Product}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Description}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Comments}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Buyer}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Supplier}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {statusHistory[item['Stock Id']] && 
-                       formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="space-y-2">
-                        <select 
-                          className="border rounded-md px-2 py-1 w-full"
-                          value={stockActions[item['Stock Id']] || 'Select action...'}
-                          onChange={(e) => handleActionChange(item['Stock Id'], e.target.value)}
-                        >
-                          {actionOptions.map(option => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        {stockActions[item['Stock Id']] === 'Other' && (
-                          <input
-                            type="text"
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredData.map((item) => (
+                    <tr key={item['Stock Id']} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">{item['Stock Id']}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Product}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Description}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Comments}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Buyer}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Supplier}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {statusHistory[item['Stock Id']] && 
+                         formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-2">
+                          <select 
                             className="border rounded-md px-2 py-1 w-full"
-                            placeholder="Specify other action..."
-                            value={otherActions[item['Stock Id']] || ''}
-                            onChange={(e) => handleOtherActionChange(item['Stock Id'], e.target.value)}
-                          />
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                            value={stockActions[item['Stock Id']] || 'Select action...'}
+                            onChange={(e) => handleActionChange(item['Stock Id'], e.target.value)}
+                          >
+                            {actionOptions.map(option => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                          {stockActions[item['Stock Id']] === 'Other' && (
+                            <input
+                              type="text"
+                              className="border rounded-md px-2 py-1 w-full"
+                              placeholder="Specify other action..."
+                              value={otherActions[item['Stock Id']] || ''}
+                              onChange={(e) => handleOtherActionChange(item['Stock Id'], e.target.value)}
+                            />
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* Fixed Horizontal Scroll Container */}
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t shadow-lg">
+        <div className="overflow-x-auto floating-scroll h-full"> {/* Added floating-scroll class */}
+          <div className="min-w-[200%]"></div>
         </div>
       </div>
     </div>
