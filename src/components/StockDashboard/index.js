@@ -244,7 +244,7 @@ const StockDashboard = () => {
   return (
     <div className="p-4 space-y-4">
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6">
+        <div className="p-6 sticky top-0 bg-white z-10">
           <h2 className="text-2xl font-bold mb-6">Stock Management Dashboard</h2>
           
           {/* Status Summary Cards */}
@@ -299,7 +299,7 @@ const StockDashboard = () => {
           </div>
 
           {/* Data Table */}
-          <div className="pb-16"> {/* Container with bottom padding */}
+          <div className="pb-16 mt-4"> {/* Container with bottom padding */}
             <div className="table-container"> {/* Removed overflow-x-auto */}
               <table className="min-w-full">
                 <thead className="bg-gray-50">
