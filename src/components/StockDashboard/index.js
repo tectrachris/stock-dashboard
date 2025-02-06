@@ -214,7 +214,7 @@ const StockDashboard = () => {
   ];
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 pb-16 space-y-4">
       <div className="bg-white rounded-lg shadow">
         <div className="p-6">
           <h2 className="text-2xl font-bold mb-6">Stock Management Dashboard</h2>
@@ -271,10 +271,10 @@ const StockDashboard = () => {
           </div>
 
           {/* Data Table */}
-          <div className="relative overflow-hidden">
-            <div className="overflow-x-auto sticky bottom-0 max-h-[calc(100vh-400px)] shadow-inner"">
-              <table className="min-w-full table-auto">
-                <thead className="bg-gray-50 sticky top-0 z-10">
+          <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t">
+            <div className="overflow-x-auto py-2">
+              <table className="min-w-full">
+                <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock ID</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
