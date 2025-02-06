@@ -71,23 +71,33 @@ const StockDashboard = () => {
   useEffect(() => {
     const tableContainer = document.querySelector('.table-container');
     const floatingScroll = document.querySelector('.floating-scroll');
-
+  
     if (!tableContainer || !floatingScroll) return;
-
-    const handleTableScroll = () => {
-      floatingScroll.scrollLeft = tableContainer.scrollLeft;
+  
+    // Set initial container width
+    const setContainerWidth = () => {
+      const width = tableContainer.querySelector('table')?.scrollWidth;
+      if (width) {
+        floatingScroll.querySelector('div').style.width = `${width}px`;
+      }
     };
-
+  
+    setContainerWidth();
+  
+    // Sync table position when floating scroll moves
     const handleFloatingScroll = () => {
       tableContainer.scrollLeft = floatingScroll.scrollLeft;
     };
-
+  
+    // Update floating scroll width if table size changes
+    const resizeObserver = new ResizeObserver(setContainerWidth);
+    resizeObserver.observe(tableContainer.querySelector('table'));
+  
     floatingScroll.addEventListener('scroll', handleFloatingScroll);
-    tableContainer.addEventListener('scroll', handleTableScroll);
-
+  
     return () => {
       floatingScroll.removeEventListener('scroll', handleFloatingScroll);
-      tableContainer.removeEventListener('scroll', handleTableScroll);
+      resizeObserver.disconnect();
     };
   }, []);
 
@@ -289,8 +299,8 @@ const StockDashboard = () => {
           </div>
 
           {/* Data Table */}
-          <div className="pb-16"> {/* Added padding to prevent overlap with fixed scroll bar */}
-            <div className="overflow-x-auto table-container"> {/* Added table-container class */}
+          <div className="pb-16"> {/* Container with bottom padding */}
+            <div className="table-container"> {/* Removed overflow-x-auto */}
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
@@ -357,10 +367,18 @@ const StockDashboard = () => {
       </div>
 
       {/* Fixed Horizontal Scroll Container */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t shadow-lg z-50" style={{ width: '100vw' }}>
-        div className="overflow-x-auto floating-scroll h-full px-4">
-          <div style={{ width: document.querySelector('.table-container table')?.scrollWidth || '200%' }} className="h-1">
-          </div>
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t shadow-lg z-50">
+        <div className="overflow-x-auto floating-scroll h-full px-4" 
+             onScroll={(e) => {
+               const tableContainer = document.querySelector('.table-container');
+               if (tableContainer) {
+                 tableContainer.scrollLeft = e.currentTarget.scrollLeft;
+               }
+             }}>
+          <div style={{ 
+            width: document.querySelector('.table-container table')?.scrollWidth || '200%',
+            height: '1px'
+          }}></div>
         </div>
       </div>
     </div>
