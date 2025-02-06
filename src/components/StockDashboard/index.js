@@ -357,9 +357,10 @@ const StockDashboard = () => {
       </div>
 
       {/* Fixed Horizontal Scroll Container */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t shadow-lg">
-        <div className="overflow-x-auto floating-scroll h-full"> {/* Added floating-scroll class */}
-          <div className="min-w-[200%]"></div>
+      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t shadow-lg z-50" style={{ width: '100vw' }}>
+        div className="overflow-x-auto floating-scroll h-full px-4">
+          <div style={{ width: document.querySelector('.table-container table')?.scrollWidth || '200%' }} className="h-1">
+          </div>
         </div>
       </div>
     </div>
