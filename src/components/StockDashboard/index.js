@@ -408,60 +408,59 @@ const StockDashboard = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredData.map((item) => (
-                    {filteredData.map((item) => (
-                      <tr 
-                        key={item['Stock Id']} 
-                        className={`group transition-colors ${
-                          actionedItems[item['Stock Id']] 
-                            ? 'bg-gray-100 text-gray-500' 
-                            : selectedRows.has(item['Stock Id'])
-                            ? 'bg-blue-50'
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
-                          checked={selectedRows.has(item['Stock Id'])}
-                          onChange={() => toggleRowSelection(item['Stock Id'])}
-                        />
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item['Stock Id']}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Product}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Action}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {statusHistory[item['Stock Id']] && 
-                         formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Buyer}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Comments}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Supplier}</td>
-                      
-                      <td className="px-6 py-4">
-                        <div className="space-y-2">
-                          <select 
+                    <tr 
+                      key={item['Stock Id']} 
+                      className={`group transition-colors ${
+                        actionedItems[item['Stock Id']] 
+                          ? 'bg-gray-100 text-gray-500' 
+                          : selectedRows.has(item['Stock Id'])
+                          ? 'bg-blue-50'
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500"
+                        checked={selectedRows.has(item['Stock Id'])}
+                        onChange={() => toggleRowSelection(item['Stock Id'])}
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item['Stock Id']}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Product}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Description}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Action}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {statusHistory[item['Stock Id']] && 
+                       formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Buyer}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Comments}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Supplier}</td>
+                    
+                    <td className="px-6 py-4">
+                      <div className="space-y-2">
+                        <select 
+                          className="border rounded-md px-2 py-1 w-full"
+                          value={stockActions[item['Stock Id']] || 'Select action...'}
+                          onChange={(e) => handleActionChange(item['Stock Id'], e.target.value)}
+                        >
+                          {actionOptions.map(option => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                        {stockActions[item['Stock Id']] === 'Other' && (
+                          <input
+                            type="text"
                             className="border rounded-md px-2 py-1 w-full"
-                            value={stockActions[item['Stock Id']] || 'Select action...'}
-                            onChange={(e) => handleActionChange(item['Stock Id'], e.target.value)}
-                          >
-                            {actionOptions.map(option => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                          {stockActions[item['Stock Id']] === 'Other' && (
-                            <input
-                              type="text"
-                              className="border rounded-md px-2 py-1 w-full"
-                              placeholder="Specify other action..."
-                              value={otherActions[item['Stock Id']] || ''}
-                              onChange={(e) => handleOtherActionChange(item['Stock Id'], e.target.value)}
+                            placeholder="Specify other action..."
+                            value={otherActions[item['Stock Id']] || ''}
+                            onChange={(e) => handleOtherActionChange(item['Stock Id'], e.target.value)}
                             />
                           )}
                         </div>
