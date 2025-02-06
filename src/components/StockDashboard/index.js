@@ -72,8 +72,9 @@ const StockDashboard = () => {
   useEffect(() => {
     const loadExcelData = async () => {
       try {
-        const fileContent = await window.fs.readFile('Full.xlsx');
-        const workbook = XLSX.read(fileContent);
+        const response = await fetch('C:\Users\ChrisHall\Tectra Technologies Ltd\Tectra Technologies Ltd - Operations\Sales Operations Master Folder\Weekly Sales Operations Reporting\Full.xlsx');
+        const fileContent = await response.arrayBuffer();
+        const workbook = XLSX.read(new Uint8Array(fileContent), { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(sheet);
         const currentDate = new Date();
