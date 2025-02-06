@@ -365,22 +365,6 @@ const StockDashboard = () => {
           </div>
         </div>
       </div>
-
-      {/* Fixed Horizontal Scroll Container */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t shadow-lg z-50">
-        <div className="overflow-x-auto floating-scroll h-full px-4" 
-             onScroll={(e) => {
-               const tableContainer = document.querySelector('.table-container');
-               if (tableContainer) {
-                 tableContainer.scrollLeft = e.currentTarget.scrollLeft;
-               }
-             }}>
-          <div style={{ 
-            width: document.querySelector('.table-container table')?.scrollWidth || '200%',
-            height: '1px'
-          }}></div>
-        </div>
-      </div>
     </div>
   );
 };
