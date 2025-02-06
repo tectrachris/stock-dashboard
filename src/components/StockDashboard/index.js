@@ -18,6 +18,21 @@ const StockDashboard = () => {
   const [statusHistory, setStatusHistory] = useState({});
   const [lastUpdate, setLastUpdate] = useState(null);
 
+  // Define columns order and configuration
+  const columns = [
+    { key: 'Stock Id', label: 'Stock ID' },
+    { key: 'Product', label: 'Product' },
+    { key: 'Description', label: 'Description' },
+    { key: 'Age', label: 'Age' },
+    { key: 'Qty', label: 'Qty' },
+    { key: 'Stock Cost', label: 'Stock Cost' },
+    { key: 'Action', label: 'Action' },
+    { key: 'Duration', label: 'Duration' },
+    { key: 'Buyer', label: 'Buyer' },
+    { key: 'Comments', label: 'Comments' },
+    { key: 'Supplier', label: 'Supplier' }
+  ];
+
   // Define main buyers
   const mainBuyers = {
     'Steve': 'Steve Vallance',
@@ -25,6 +40,17 @@ const StockDashboard = () => {
     'Pat': 'Patrick Boydell',
     'Felix': 'Felix Barber'
   };
+
+  const actionOptions = [
+    'Select action...',
+    'Waiting on Credit',
+    'Received Credit',
+    'Requested Credit',
+    'Writedown',
+    'Move Cost',
+    'Scrap',
+    'Other'
+  ];
 
   const getDuration = (startDate, endDate) => {
     const diffTime = Math.abs(endDate - startDate);
@@ -67,40 +93,6 @@ const StockDashboard = () => {
     }
   }, []);
 
-  // Scroll synchronization
-  useEffect(() => {
-    const tableContainer = document.querySelector('.table-container');
-    const floatingScroll = document.querySelector('.floating-scroll');
-  
-    if (!tableContainer || !floatingScroll) return;
-  
-    // Set initial container width
-    const setContainerWidth = () => {
-      const width = tableContainer.querySelector('table')?.scrollWidth;
-      if (width) {
-        floatingScroll.querySelector('div').style.width = `${width}px`;
-      }
-    };
-  
-    setContainerWidth();
-  
-    // Sync table position when floating scroll moves
-    const handleFloatingScroll = () => {
-      tableContainer.scrollLeft = floatingScroll.scrollLeft;
-    };
-  
-    // Update floating scroll width if table size changes
-    const resizeObserver = new ResizeObserver(setContainerWidth);
-    resizeObserver.observe(tableContainer.querySelector('table'));
-  
-    floatingScroll.addEventListener('scroll', handleFloatingScroll);
-  
-    return () => {
-      floatingScroll.removeEventListener('scroll', handleFloatingScroll);
-      resizeObserver.disconnect();
-    };
-  }, []);
-
   // Load Excel data
   useEffect(() => {
     const loadExcelData = async () => {
@@ -111,7 +103,7 @@ const StockDashboard = () => {
           return;
         }
         const fileContent = await response.arrayBuffer();
-        const workbook = XLSX.read(new Uint8Array(fileContent), { type: 'array' });
+        const workbook = XLSX.read(fileContent, { type: 'array' });
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(sheet);
         const currentDate = new Date();
@@ -200,7 +192,7 @@ const StockDashboard = () => {
 
     loadExcelData();
   }, [statusHistory]);
-  
+
   const handleActionChange = (stockId, action) => {
     const newStockActions = {
       ...stockActions,
@@ -219,6 +211,43 @@ const StockDashboard = () => {
     localStorage.setItem('stockOtherActions', JSON.stringify(newOtherActions));
   };
 
+  const renderCellContent = (item, column) => {
+    switch (column.key) {
+      case 'Stock Cost':
+        return `£${Number(item[column.key]).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      case 'Duration':
+        return statusHistory[item['Stock Id']] && 
+               formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()));
+      case 'Action':
+        return (
+          <div className="space-y-2">
+            <select 
+              className="border rounded-md px-2 py-1 w-full"
+              value={stockActions[item['Stock Id']] || 'Select action...'}
+              onChange={(e) => handleActionChange(item['Stock Id'], e.target.value)}
+            >
+              {actionOptions.map(option => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+            {stockActions[item['Stock Id']] === 'Other' && (
+              <input
+                type="text"
+                className="border rounded-md px-2 py-1 w-full"
+                placeholder="Specify other action..."
+                value={otherActions[item['Stock Id']] || ''}
+                onChange={(e) => handleOtherActionChange(item['Stock Id'], e.target.value)}
+              />
+            )}
+          </div>
+        );
+      default:
+        return item[column.key];
+    }
+  };
+
   const filteredData = useMemo(() => filterAndSortData(stockData[activeStatus] || []), [stockData, selectedBuyer, activeStatus]);
 
   if (loading) {
@@ -230,16 +259,6 @@ const StockDashboard = () => {
   }
 
   const statuses = ['Incorrect', 'Missing', 'Faulty', 'Not Inspected', 'Returned'];
-  const actionOptions = [
-    'Select action...',
-    'Waiting on Credit',
-    'Received Credit',
-    'Requested Credit',
-    'Writedown',
-    'Move Cost',
-    'Scrap',
-    'Other'
-  ];
 
   return (
     <div className="p-4 space-y-4">
@@ -299,64 +318,29 @@ const StockDashboard = () => {
           </div>
 
           {/* Data Table */}
-          <div className="pb-16"> {/* Container with bottom padding */}
-            <div className="table-container"> {/* Removed overflow-x-auto */}
+          <div className="pb-16">
+            <div className="table-container overflow-x-auto">
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Cost</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buyer</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
+                    {columns.map(column => (
+                      <th
+                        key={column.key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        {column.label}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredData.map((item) => (
                     <tr key={item['Stock Id']} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">{item['Stock Id']}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Product}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Comments}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Buyer}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Supplier}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {statusHistory[item['Stock Id']] && 
-                         formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-2">
-                          <select 
-                            className="border rounded-md px-2 py-1 w-full"
-                            value={stockActions[item['Stock Id']] || 'Select action...'}
-                            onChange={(e) => handleActionChange(item['Stock Id'], e.target.value)}
-                          >
-                            {actionOptions.map(option => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                          {stockActions[item['Stock Id']] === 'Other' && (
-                            <input
-                              type="text"
-                              className="border rounded-md px-2 py-1 w-full"
-                              placeholder="Specify other action..."
-                              value={otherActions[item['Stock Id']] || ''}
-                              onChange={(e) => handleOtherActionChange(item['Stock Id'], e.target.value)}
-                            />
-                          )}
-                        </div>
-                      </td>
+                      {columns.map(column => (
+                        <td key={column.key} className="px-6 py-4 whitespace-nowrap">
+                          {renderCellContent(item, column)}
+                        </td>
+                      ))}
                     </tr>
                   ))}
                 </tbody>
