@@ -300,7 +300,7 @@ const StockDashboard = () => {
 
           {/* Data Table */}
           <div className="pb-16"> {/* Container with bottom padding */}
-            <div className="table-container w-full"> {/* Removed overflow-x-auto */}
+            <div className="table-container"> {/* Removed overflow-x-auto */}
               <table className="min-w-full">
                 <thead className="bg-gray-50">
                   <tr>
