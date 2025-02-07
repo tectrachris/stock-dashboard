@@ -410,12 +410,13 @@ const StockDashboard = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Age</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock Cost</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Action</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Set Action</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Buyer</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Comments</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supplier</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Action</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Set Action</th>
+                    
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -444,11 +445,11 @@ const StockDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
                     <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Action}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Buyer}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Comments}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Supplier}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Action}</td>
                     <td className="px-6 py-4">
                       <div className="space-y-2">
                         <select 
