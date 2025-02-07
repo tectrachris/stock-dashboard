@@ -348,7 +348,7 @@ const StockDashboard = () => {
                   £{buyer === 'all' 
                     ? Object.values(buyerTotals).reduce((a, b) => a + b, 0)
                     : buyerTotals[buyer] || 0
-                  }
+                  ).toFixed(2)}
                 </div>
               </div>
             ))}
