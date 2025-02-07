@@ -10,6 +10,7 @@ const StockDashboard = () => {
     'Returned': []
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [actionedItems, setActionedItems] = useState({});
   const [selectedBuyer, setSelectedBuyer] = useState('all');
   const [activeStatus, setActiveStatus] = useState('Incorrect');
@@ -96,8 +97,7 @@ const StockDashboard = () => {
   
     // Update floating scroll width if table size changes
     const resizeObserver = new ResizeObserver(setContainerWidth);
-    resizeObserver.observe(tableContainer.querySelector('table'));
-  
+      
     floatingScroll.addEventListener('scroll', handleFloatingScroll);
   
     return () => {
@@ -282,6 +282,14 @@ const StockDashboard = () => {
     return (
       <div className="m-4 p-6 bg-white rounded-lg shadow">
         Loading stock data...
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="m-4 p-6 bg-red-100 border border-red-400 text-red-700 rounded">
+        {error}
       </div>
     );
   }
