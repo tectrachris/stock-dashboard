@@ -270,8 +270,7 @@ const StockDashboard = () => {
     return Object.keys(mainBuyers).reduce((acc, buyer) => {
       acc[buyer] = (stockData[activeStatus] || [])
         .filter(item => item.Buyer?.trim() === mainBuyers[buyer])
-        .reduce((sum, item) => sum + (Number(item['Stock Cost']) || 0), 0)
-        .toFixed(2));
+        .reduce((sum, item) => sum + (Number(item['Stock Cost']) || 0), 0);
       return acc;
     }, {});
   }, [stockData, activeStatus, mainBuyers]);
@@ -347,9 +346,9 @@ const StockDashboard = () => {
                 </button>
                 <div className="text-sm text-gray-600 text-center mt-1">
                   £{buyer === 'all' 
-                    ? Object.values(buyerTotals).reduce((a, b) => a + b, 0)
-                    : buyerTotals[buyer] || 0
-                  ).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ? Object.values(buyerTotals).reduce((a, b) => a + b, 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : (buyerTotals[buyer] || 0).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                  }
                 </div>
               </div>
             ))}
