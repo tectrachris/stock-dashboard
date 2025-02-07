@@ -10,6 +10,7 @@ const StockDashboard = () => {
     'Returned': []
   });
   const [loading, setLoading] = useState(true);
+  const [actionedItems, setActionedItems] = useState({});
   const [selectedBuyer, setSelectedBuyer] = useState('all');
   const [activeStatus, setActiveStatus] = useState('Incorrect');
   const [statusCounts, setStatusCounts] = useState({});
@@ -74,6 +75,7 @@ const StockDashboard = () => {
   useEffect(() => {
     const tableContainer = document.querySelector('.table-container');
     const floatingScroll = document.querySelector('.floating-scroll');
+    let resizeObserver;
   
     if (!tableContainer || !floatingScroll) return;
   
@@ -110,7 +112,8 @@ const StockDashboard = () => {
       try {
         const response = await fetch('/Full.xlsx');
         if (!response.ok) {
-          console.error('Fetch failed:', response.status, response.statusText);
+          setLoading(false);
+          setError(`Failed to load data: ${response.status} ${response.statusText}`);
           return;
         }
         const fileContent = await response.arrayBuffer();
@@ -202,7 +205,7 @@ const StockDashboard = () => {
     };
 
     loadExcelData();
-  }, [statusHistory]);
+  }, [statusHistory, stockActions, otherActions]); // Add dependency array
   
   const handleActionChange = (stockId, action) => {
     const newStockActions = {
@@ -265,6 +268,15 @@ const StockDashboard = () => {
   };
 
   const filteredData = useMemo(() => filterAndSortData(stockData[activeStatus] || []), [stockData, selectedBuyer, activeStatus]);
+  
+  const buyerTotals = useMemo(() => {
+    return Object.keys(mainBuyers).reduce((acc, buyer) => {
+      acc[buyer] = (stockData[activeStatus] || [])
+        .filter(item => item.Buyer?.trim() === mainBuyers[buyer])
+        .reduce((sum, item) => sum + (Number(item['Stock Cost']) || 0), 0);
+      return acc;
+    }, {});
+  }, [stockData, activeStatus, mainBuyers]);
 
   if (loading) {
     return (
@@ -328,16 +340,10 @@ const StockDashboard = () => {
                   {buyer === 'all' ? 'All Buyers' : buyer}
                 </button>
                 <div className="text-sm text-gray-600 text-center mt-1">
-                  £{(stockData[activeStatus] || [])
-                    .filter(item => {
-                      if (buyer === 'all') return true;
-                      if (buyer === 'Other') {
-                        return item.Buyer?.trim() && !Object.values(mainBuyers).includes(item.Buyer?.trim());
-                      }
-                      return item.Buyer?.trim() === mainBuyers[buyer];
-                    })
-                    .reduce((sum, item) => sum + (Number(item['Stock Cost']) || 0), 0)
-                    .toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  £{buyer === 'all' 
+                    ? Object.values(buyerTotals).reduce((a, b) => a + b, 0)
+                    : buyerTotals[buyer] || 0
+                  }
                 </div>
               </div>
             ))}
