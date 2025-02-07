@@ -444,15 +444,11 @@ const StockDashboard = () => {
                     <td className="px-6 py-4 whitespace-nowrap">{item.Age}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Qty}</td>
                     <td className="px-6 py-4 whitespace-nowrap">£{Number(item['Stock Cost']).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{item.Action}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {statusHistory[item['Stock Id']] && 
-                       formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{formatDuration(getDuration(new Date(statusHistory[item['Stock Id']].startDate), new Date()))}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Buyer}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Comments}</td>
                     <td className="px-6 py-4 whitespace-nowrap">{item.Supplier}</td>
-                    
+                    <td className="px-6 py-4 whitespace-nowrap">{item.Action}</td>
                     <td className="px-6 py-4">
                       <div className="space-y-2">
                         <select 
