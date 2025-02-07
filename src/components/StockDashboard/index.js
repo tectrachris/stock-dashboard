@@ -80,7 +80,6 @@ const StockDashboard = () => {
   
     if (!tableContainer || !floatingScroll) return;
   
-    // Set initial container width
     const setContainerWidth = () => {
       const width = tableContainer.querySelector('table')?.scrollWidth;
       if (width) {
@@ -90,14 +89,12 @@ const StockDashboard = () => {
   
     setContainerWidth();
   
-    // Sync table position when floating scroll moves
     const handleFloatingScroll = () => {
       tableContainer.scrollLeft = floatingScroll.scrollLeft;
     };
   
-    // Update floating scroll width if table size changes
-    const resizeObserver = new ResizeObserver(setContainerWidth);
-      
+    resizeObserver = new ResizeObserver(setContainerWidth);
+    resizeObserver.observe(tableContainer.querySelector('table'));
     floatingScroll.addEventListener('scroll', handleFloatingScroll);
   
     return () => {
