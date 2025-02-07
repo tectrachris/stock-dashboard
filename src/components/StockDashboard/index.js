@@ -270,7 +270,8 @@ const StockDashboard = () => {
     return Object.keys(mainBuyers).reduce((acc, buyer) => {
       acc[buyer] = (stockData[activeStatus] || [])
         .filter(item => item.Buyer?.trim() === mainBuyers[buyer])
-        .reduce((sum, item) => sum + (Number(item['Stock Cost']) || 0), 0);
+        .reduce((sum, item) => sum + (Number(item['Stock Cost']) || 0), 0)
+        .toFixed(2));
       return acc;
     }, {});
   }, [stockData, activeStatus, mainBuyers]);
